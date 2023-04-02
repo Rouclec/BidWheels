@@ -3,6 +3,7 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const uniqueValidator = require("mongoose-unique-validator");
+const { v4: uuidv4 } = require("uuid");
 
 const userSchema = new mongoose.Schema(
   {
@@ -16,6 +17,9 @@ const userSchema = new mongoose.Schema(
     fullname: {
       type: String,
       required: [true, "Please enter your full name"],
+    },
+    username: {
+      type: String,
     },
     vatNumber: {
       type: String,
@@ -40,8 +44,8 @@ const userSchema = new mongoose.Schema(
       ref: "Role",
     },
     verified: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     password: {
       type: String,
@@ -89,6 +93,7 @@ userSchema.pre(/^find/, function (next) {
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next(); //if the password has not been modified, go to the next middleware
   this.password = await bcrypt.hash(this.password, 12); //encrypt the password with a strength of 12
+  this.username = `bid4wheels${uuidv4().slice(0, 3)}`;
   this.passwordConfirm = undefined;
 });
 

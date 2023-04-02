@@ -5,10 +5,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 
 const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-  ],
+  origin: ["http://localhost:3000", "http://localhost:3001"],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -36,9 +33,12 @@ app.use(express.json({ limit: "10kb" }));
 
 const authRouter = require("./routes/authRoutes");
 const roleRouter = require("./routes/roleRoutes");
-
+const productRouter = require("./routes/productRoutes");
+const userBidRouter = require("./routes/userBidRoutes");
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/role", roleRouter);
+app.use("/api/v1/product", productRouter);
+app.use("/api/v1/user/bid", userBidRouter);
 
 module.exports = app;

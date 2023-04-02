@@ -23,8 +23,8 @@ const verificationSchema = new mongoose.Schema(
     },
     status: {
         type: String,
-        enum: ["Pending","Completed","Rejected"],
-        default: "Pending"
+        enum: ["pending","completed","rejected"],
+        default: "pending"
     },
     user: {
         type: mongoose.Schema.ObjectId,

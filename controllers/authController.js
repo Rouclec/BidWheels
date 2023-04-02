@@ -192,7 +192,7 @@ exports.confirmVerification = catchAsync(async (req, res, next) => {
     { status: status }
   );
 
-  if (status === "Confirmed") {
+  if (status === "confirmed") {
     const updatedUser = await User.findByIdAndUpdate(verification.user, {
       verified: true,
     });
