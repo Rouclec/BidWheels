@@ -33,7 +33,8 @@ const productSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['open',"inBidding", "sold"]
+    enum: ['open',"inBidding", "sold"],
+    default: 'open',
   },
   owner: {
     type: mongoose.Schema.ObjectId,
