@@ -8,7 +8,7 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://bidwheels.vercel.app/",
+    "https://bidwheels.vercel.app",
   ],
   credentials: true,
   optionSuccessStatus: 200,
