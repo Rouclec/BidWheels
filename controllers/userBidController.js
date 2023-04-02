@@ -4,6 +4,7 @@ const UserBid = require("../models/userBidModel");
 const User = require("../models/userModel");
 const BiddingEmail = require("../utils/biddingEmail");
 const catchAsync = require("../utils/catchAsync");
+const { getAll } = require("./helperController");
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -188,3 +189,5 @@ exports.getLeaderBoard = catchAsync(async (req, res, next) => {
     })
   );
 });
+
+exports.getAllBids = getAll(UserBid);
