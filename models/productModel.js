@@ -45,7 +45,7 @@ productSchema.plugin(uniqueValidator, {
   message: "{PATH} {VALUE} already in use, please try another!",
 }); //enable beautifying on this schema
 
-productSchema.index({ "$**" : "text" })
+productSchema.index({ "$**" : "text" });
 
 
 const Product = mongoose.model("Product", productSchema);

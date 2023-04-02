@@ -2,8 +2,8 @@ const Bid = require("../models/bidModel");
 const Product = require("../models/productModel");
 const UserBid = require("../models/userBidModel");
 const User = require("../models/userModel");
+const BiddingEmail = require("../utils/biddingEmail");
 const catchAsync = require("../utils/catchAsync");
-const BiddingEmail = require("../utils/email");
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;

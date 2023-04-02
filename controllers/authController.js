@@ -2,11 +2,11 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 const { promisify } = require("util");
-const Email = require("../utils/email");
 const crypto = require("crypto");
 const Role = require("../models/roleModel");
 const slugify = require("slugify");
 const Verification = require("../models/verificationModel");
+const Email = require("../utils/email");
 
 const signToken = (id) => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -129,7 +129,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   //4) check if user exists
   const user = await User.findById(verifiedToken.id);
   if (!user) {
-    console.log('user not found on line 132')
     return res.status(401).json({
       status: "Unauthorized",
       message: "Something went wrong",
