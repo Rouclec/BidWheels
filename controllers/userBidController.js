@@ -1,20 +1,22 @@
 const Bid = require("../models/bidModel");
 const Product = require("../models/productModel");
 const UserBid = require("../models/userBidModel");
+const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
+const BiddingEmail = require("../utils/email");
 
 exports.createUserBid = catchAsync(async (req, res, next) => {
   const { productId, productStatus, minimumPrice, amount } = req.body;
-  if (amount < minimumPrice) {
-    return next(
-      res.status(400).json({
-        status: "Bad request",
-        message: `Bidding price ${amount} cannot be less than minimum price ${minimumPrice}`,
-      })
-    );
-  }
   let bid;
   if (productStatus === "open") {
+    if (amount < minimumPrice) {
+      return next(
+        res.status(400).json({
+          status: "Bad request",
+          message: `Bidding price ${amount} cannot be less than minimum price ${minimumPrice}`,
+        })
+      );
+    }
     bid = await Bid.create({
       product: productId,
       highestBid: {
@@ -24,7 +26,38 @@ exports.createUserBid = catchAsync(async (req, res, next) => {
     });
     await Product.findByIdAndUpdate(productId, { status: "inBidding" });
   } else {
-    bid = await Bid.findOne({ product: productId });
+    bid = await Bid.findOne({ product: productId, status: "inProgress" });
+    const date = new Date();
+    if (bid.status === "complete") {
+      return next(
+        res.status(500).json({
+          status: "Server Error",
+          message: "Bidding has ended for this item",
+        })
+      );
+    }
+    if (bid.endDate < date) {
+      await Bid.findByIdAndUpdate(bid._id, {
+        status: "complete",
+      });
+      const userFound = await User.findById(bid.highestBid.user);
+      const product = await Product.findById(bid.product);
+      await new BiddingEmail(userFound, product.name).sendBiddingWonMail();
+      return next(
+        res.status(500).json({
+          status: "Server Error",
+          message: "Bidding has ended for this item",
+        })
+      );
+    }
+    if (amount < minimumPrice) {
+      return next(
+        res.status(400).json({
+          status: "Bad request",
+          message: `Bidding price ${amount} cannot be less than minimum price ${minimumPrice}`,
+        })
+      );
+    }
     if (amount <= bid.highestBid.amount) {
       return next(
         res.status(400).json({
@@ -33,31 +66,12 @@ exports.createUserBid = catchAsync(async (req, res, next) => {
         })
       );
     }
-    const existingBid = await UserBid.findOne({
+    const existingUserBid = await UserBid.findOne({
       product: productId,
       user: req.user._id,
     });
-
-    if (existingBid) {
-      const date = new Date();
-      if (existingBid.status === "complete") {
-        return next(
-          res.status(500).json({
-            status: "Server Error",
-            message: "Bidding has ended for this item",
-          })
-        );
-      }
-      if (existingBid.endDate < date) {
-        await Bid.findByIdAndUpdate(existingBid._id, { status: "complete" });
-        return next(
-          res.status(500).json({
-            status: "Server Error",
-            message: "Bidding has ended for this item",
-          })
-        );
-      }
-      const updatedBid = await UserBid.findByIdAndUpdate(existingBid._id, {
+    if (existingUserBid) {
+      const updatedBid = await UserBid.findByIdAndUpdate(existingUserBid._id, {
         amount,
       });
 
@@ -110,27 +124,42 @@ exports.getLeaderBoard = catchAsync(async (req, res, next) => {
   );
   let board = [];
   if (bidIndex > 4) {
-    firstFive.slice(0, 4).forEach((e, i) => {
+    firstFive.slice(0, 4).forEach(async (e, i) => {
       board.push({
         position: i + 1,
-        userId: e.userId,
+        user: e.userId,
         amount: e.amount,
       });
     });
     board.push({
       position: bidIndex + 1,
-      userId: req.user._id,
+      user: req.user._id,
       amount: myBid.amount,
     });
   } else {
-    firstFive.forEach((e, i) => {
+    firstFive.forEach(async (e, i) => {
       board.push({
         position: i + 1,
-        userId: e.userId,
+        user: e.userId,
         amount: e.amount,
       });
     });
   }
+
+  await Promise.all(
+    board.map(async (e) => {
+      const user = await User.findById(e.user);
+      if (user) {
+        const username =
+          user.username === req.user.username
+            ? `${req.user.username} (You)`
+            : `${req.user.username}`;
+        e.user = username;
+      } else {
+        e.user = `Anonymous`;
+      }
+    })
+  );
 
   return next(
     res.status(200).json({
