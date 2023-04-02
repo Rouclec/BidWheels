@@ -27,6 +27,7 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Provide a cover image for this product']
   },
   images: [String],
+  description: String,
   biddingDuration: {
     type: Number,
     default: 1

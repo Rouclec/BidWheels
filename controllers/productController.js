@@ -3,8 +3,16 @@ const catchAsync = require("../utils/catchAsync");
 const { getAll, getOne } = require("./helperController");
 
 exports.uploadProduct = catchAsync(async (req, res, next) => {
-  const { name, carModel, engineType, fuelType, minPrice, coverImage, images } =
-    req.body;
+  const {
+    name,
+    carModel,
+    engineType,
+    fuelType,
+    minPrice,
+    coverImage,
+    images,
+    description,
+  } = req.body;
   let biddingDuration = 1;
   if (req.body.biddingDuration) biddingDuration = req.body.biddingDuration;
 
@@ -15,7 +23,6 @@ exports.uploadProduct = catchAsync(async (req, res, next) => {
     });
   }
 
-  console.log("request body: ", { ...req.body, biddingDuration });
   const product = await Product.create({
     name,
     carModel,
@@ -26,6 +33,7 @@ exports.uploadProduct = catchAsync(async (req, res, next) => {
     owner: req.user._id,
     biddingDuration,
     images,
+    description,
   });
 
   console.log("product created: ", product);
