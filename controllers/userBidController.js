@@ -5,6 +5,24 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const BiddingEmail = require("../utils/email");
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+const deductPayment = async (amount, user) => {
+  const client = require("twilio")(accountSid, authToken);
+  client.messages
+    .create({
+      body: `Hello ${
+        user.fullname.split(" ")[0]
+      }, ${amount} has been deducted from your mobile money, for your bid on Bid 4 Wheels`,
+      messagingServiceSid: "MG2926ab2460fccf4b17c058e498e89dad",
+      to: "+237650184172",
+    })
+    .then((message) => console.log(message.sid))
+    .catch((error) => console.log("SMS failed with error: ", error));
+  // .done();
+};
+
 exports.createUserBid = catchAsync(async (req, res, next) => {
   const { productId, productStatus, minimumPrice, amount } = req.body;
   let bid;
@@ -71,6 +89,7 @@ exports.createUserBid = catchAsync(async (req, res, next) => {
       user: req.user._id,
     });
     if (existingUserBid) {
+      await deductPayment(amount - existingUserBid.amount, req.user);
       const updatedBid = await UserBid.findByIdAndUpdate(existingUserBid._id, {
         amount,
       });
@@ -95,6 +114,7 @@ exports.createUserBid = catchAsync(async (req, res, next) => {
       },
     });
   }
+  await deductPayment(amount, req.user);
   const userBid = await UserBid.create({
     amount,
     bidId: bid._id,
