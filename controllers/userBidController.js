@@ -191,3 +191,4 @@ exports.getLeaderBoard = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllBids = getAll(UserBid);
+exports.getBids = getAll(Bid);
